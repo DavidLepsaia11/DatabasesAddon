@@ -42,7 +42,7 @@ namespace DatabasesAddon
 
         private void OnCustomInitialize()
         {
-            ReportController = new ReportController(RSM.Core.SDK.DI.DIApplication.Company, UIAPIRawForm);
+          //  ReportController = new ReportController(RSM.Core.SDK.DI.DIApplication.Company, UIAPIRawForm);
         }
 
         private SAPbouiCOM.Button Button1;

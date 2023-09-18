@@ -47,6 +47,13 @@ namespace DatabasesAddon
                 oCreationPackage.UniqueID = "DatabasesAddon.ReportForm";
                 oCreationPackage.String = "Report Form";
                 oMenus.AddEx(oCreationPackage);
+
+
+                // Create sub menu for Form1
+                oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_STRING;
+                oCreationPackage.UniqueID = "DatabasesAddon.Form1";
+                oCreationPackage.String = "Form 1";
+                oMenus.AddEx(oCreationPackage);
             }
             catch (Exception er)
             { //  Menu already exists
@@ -64,6 +71,14 @@ namespace DatabasesAddon
                 {
                     ReportForm activeForm = new ReportForm();
                     activeForm.Show();
+                }
+                else if (pVal.BeforeAction && pVal.MenuUID == "DatabasesAddon.Form1")
+                {
+                    Form1 activeForm = new Form1();
+                    activeForm.Show();
+                    activeForm.Activate();
+                    activeForm.Focus();
+                    System.Windows.Forms.Application.Run();
                 }
             }
             catch (Exception ex)

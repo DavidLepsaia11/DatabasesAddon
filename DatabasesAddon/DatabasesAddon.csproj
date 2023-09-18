@@ -83,6 +83,12 @@
     <Reference Include="SAPBusinessOneSDK" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
     <Compile Include="Helpers\HanaTranslator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Menu.cs" />
@@ -99,6 +105,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="AddonFile\QueryFile.txt" />
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />

@@ -29,21 +29,26 @@ namespace DatabasesAddon
         /// </summary>
         private void InitializeComponent()
         {
-            this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            this.AdvancedDataGridView1 = new ADGV.AdvancedDataGridView();
+            ((System.ComponentModel.ISupportInitialize)(this.AdvancedDataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
-            // dataGridView1
+            // AdvancedDataGridView1
             // 
-            this.dataGridView1.AllowUserToAddRows = false;
-            this.dataGridView1.AllowUserToDeleteRows = false;
-            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridView1.Location = new System.Drawing.Point(0, 0);
-            this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.ReadOnly = true;
-            this.dataGridView1.Size = new System.Drawing.Size(1264, 561);
-            this.dataGridView1.TabIndex = 0;
+            this.AdvancedDataGridView1.AllowUserToAddRows = false;
+            this.AdvancedDataGridView1.AllowUserToDeleteRows = false;
+            this.AdvancedDataGridView1.AutoGenerateContextFilters = true;
+            this.AdvancedDataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.AdvancedDataGridView1.DateWithTime = false;
+            this.AdvancedDataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.AdvancedDataGridView1.Location = new System.Drawing.Point(0, 0);
+            this.AdvancedDataGridView1.Name = "AdvancedDataGridView1";
+            this.AdvancedDataGridView1.ReadOnly = true;
+            this.AdvancedDataGridView1.Size = new System.Drawing.Size(1264, 561);
+            this.AdvancedDataGridView1.TabIndex = 0;
+            this.AdvancedDataGridView1.TimeFilter = false;
+            this.AdvancedDataGridView1.SortStringChanged += new System.EventHandler(this.advancedDataGridView1_SortStringChanged);
+            this.AdvancedDataGridView1.FilterStringChanged += new System.EventHandler(this.advancedDataGridView1_FilterStringChanged);
             // 
             // Form1
             // 
@@ -51,17 +56,17 @@ namespace DatabasesAddon
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ButtonFace;
             this.ClientSize = new System.Drawing.Size(1264, 561);
-            this.Controls.Add(this.dataGridView1);
+            this.Controls.Add(this.AdvancedDataGridView1);
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.AdvancedDataGridView1)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.DataGridView dataGridView1;
+        private ADGV.AdvancedDataGridView AdvancedDataGridView1;
     }
 }

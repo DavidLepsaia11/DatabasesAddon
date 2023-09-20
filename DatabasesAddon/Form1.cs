@@ -1,10 +1,12 @@
-﻿using System;
+﻿using ADGV;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -14,7 +16,7 @@ namespace DatabasesAddon
     {
         public ReportController Controller { get; private set; }
 
-        public DataGridView WindGrid { get { return dataGridView1; } }
+        public AdvancedDataGridView WindGrid { get { return AdvancedDataGridView1; } }
 
         public Form1()
         {
@@ -25,6 +27,33 @@ namespace DatabasesAddon
         private void Form1_Load(object sender, EventArgs e)
         {
             Controller.FillReportGrid();
+        }
+
+        private void advancedDataGridView1_SortStringChanged(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void advancedDataGridView1_FilterStringChanged(object sender, EventArgs e)
+        {
+            var advancedGrid = (AdvancedDataGridView)sender;
+            var filterString = advancedGrid.FilterString;
+
+            // Define a regular expression pattern to match the desired substrings
+            string pattern = @"\(\[([^\]]+)\] IN \(([^)]+)\)\)";
+            Match match = Regex.Match(filterString, pattern);
+
+            if (match.Success)
+            {
+                string columnName = match.Groups[1].Value;
+                string value = match.Groups[2].Value;
+               Controller.FilterGrid(columnName, value.Split(','));
+            }
+            else
+            {
+              //  Console.WriteLine("No match found.");
+            }
+
         }
     }
 }

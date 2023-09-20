@@ -10,7 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Dynamic;
 using System.Windows.Forms;
-
+using ADGV;
+using DatabasesAddon.Enums;
 
 namespace DatabasesAddon
 {
@@ -20,8 +21,11 @@ namespace DatabasesAddon
         private readonly SAPbobsCOM.Company Company;
 
       //  public SAPbouiCOM.Grid ReportGrid { get { return (SAPbouiCOM.Grid)Form.Items.Item("Item_2").Specific; } }
-        public DataGridView WindGrid { get; set; }
+        public AdvancedDataGridView WindGrid { get; set; }
 
+        public  BindingSource BindingSource { get; private set; }
+
+        public DataTable ResultTable { get; private set; }
         //public ReportController(SAPbobsCOM.Company company, SAPbouiCOM.IForm form)
         //{
         //    Company = company;
@@ -32,21 +36,17 @@ namespace DatabasesAddon
         {
             Company = company;
             WindGrid = ActiveForm.WindGrid;
+            ResultTable = new System.Data.DataTable();
         }
 
         public void FillReportGrid()
         {
             string filePath = @"C:\Users\dlepsaia\source\repos\DatabasesAddon\DatabasesAddon\AddonFile\QueryFile.txt";
             string query = "Select top 10  \"TransId\" , \"SysTotal\" from \"OJDT\"";
-            //string server = "10.132.10.104:30015";
-            //string user = "SYSTEM";
-            //string password = "GusSERta1";
             string connectionString = "Server=10.132.10.104:30015;UserName=SYSTEM;Password=GusSERta1;CS=CONS_MANAGEMENT";
 
             try
             {
-                var resultDataTable = new System.Data.DataTable();
-
                 using (var hanaConnection = new HanaConnection(connectionString))
                 {
                     hanaConnection.Open();
@@ -60,38 +60,27 @@ namespace DatabasesAddon
 
                         using (var reader = cmd.ExecuteReader())
                         {
-                            var columns = new List<string>();
-                            for (int i = 0; i < reader.FieldCount; i++)
-                            {
-                                string colname = reader.GetName(i);
-                                //   ReportGrid.DataTable.Columns.Add(colname, BoFieldsType.ft_AlphaNumeric);
-                                if (resultDataTable.Columns.Contains(colname))
-                                {
-                                    colname += "2";
-                                    resultDataTable.Columns.Add(colname);
-                                }
-                                else
-                                {
-                                    resultDataTable.Columns.Add(colname);
-                                }
-                                columns.Add(colname);
-                            }
+                            var columns = GetColumnsList();
 
-                            //// Print rows
-                            //int indx = 1;
 
-                            //foreach (string column in listColumns)
+                            //var columns = new List<string>();
+                            //for (int i = 0; i < reader.FieldCount; i++)
                             //{
-                            //    while (reader.Read())
+                            //    string colname = reader.GetName(i);
+                            //    if (ResultTable.Columns.Contains(colname))
                             //    {
-
+                            //        colname += "2";
+                            //        ResultTable.Columns.Add(colname);
                             //    }
+                            //    else
+                            //    {
+                            //        ResultTable.Columns.Add(colname);
+                            //    }
+                            //    columns.Add(colname);
                             //}
-                            // int indx;
+
                             while (reader.Read())
                             {
-                                // indx = 0;
-                                //   ReportGrid.DataTable.Rows.Add();
                                 object[] array = new object[columns.Count];
 
                                 for (int j = 0; j < columns.Count; j++)
@@ -99,19 +88,114 @@ namespace DatabasesAddon
                                     var columnValue = reader.GetValue(j);
                                     array[j] = columnValue;
                                 }
-                                resultDataTable.Rows.Add(array);
-                                //  //  ReportGrid.DataTable.SetValue(columns[j], indx, columnValue);
+                                ResultTable.Rows.Add(array);
                             }
                         }
                     }
                 }
-                WindGrid.DataSource = resultDataTable;
+                WindGrid.DataSource = ResultTable;
             }
             catch (Exception ex)
             {
                 RSM.Core.SDK.UI.UIApplication.ShowError(ex.Message);
             }
 
+        }
+
+        private List<string> GetColumnsList()
+        {
+            var columnList = new List<string>();
+
+            ResultTable.Columns.Add("U_SenderBranchCompany", typeof(string));
+            ResultTable.Columns.Add("U_OriginlJdNum", typeof(int));
+            ResultTable.Columns.Add("Debit", typeof(double));
+            ResultTable.Columns.Add("Credit", typeof(double));
+            ResultTable.Columns.Add("CntRows", typeof(int));
+            ResultTable.Columns.Add("'SRGRE'", typeof(string));
+            ResultTable.Columns.Add("TransId", typeof(int));
+            ResultTable.Columns.Add("Debit2", typeof(string));
+            ResultTable.Columns.Add("Credit2", typeof(string));
+            ResultTable.Columns.Add("RefDate", typeof(DateTime));
+            ResultTable.Columns.Add("CreateDate", typeof(DateTime));
+            ResultTable.Columns.Add("U_UpdateTS", typeof(DateTime));
+            ResultTable.Columns.Add("SyncMessage", typeof(string));
+            ResultTable.Columns.Add("SyncDate", typeof(DateTime));
+            ResultTable.Columns.Add("UpdateMessage", typeof(string));
+            ResultTable.Columns.Add("LastUpdate", typeof(DateTime));
+
+
+            for (int i = 0; i < ResultTable.Columns.Count; i++)
+            {
+                columnList.Add(ResultTable.Columns[i].ColumnName);
+            }
+
+            return columnList;
+        }
+
+        public void FilterGrid(string columnName, params string[] values) 
+        {
+            DataView dv = ResultTable.DefaultView;
+            object returnedValue;
+            DataTypeEnum dataType;
+            dv.RowFilter = string.Empty;
+            bool isFirstLine = true;
+
+            foreach (var value in values)
+            {
+              ( returnedValue, dataType) = ReturnDefinedType(value);
+                if (dataType == DataTypeEnum.isDouble || dataType == DataTypeEnum.isInt)
+                {
+                    if (isFirstLine) 
+                    {
+                         dv.RowFilter += $"{columnName} = {returnedValue}"; 
+                         isFirstLine = false;
+                    }
+                   else dv.RowFilter += $" OR {columnName} = {returnedValue}";
+                }
+                else if (dataType == DataTypeEnum.isDateTime)
+                {
+                    if (isFirstLine) 
+                    {
+                        dv.RowFilter += $"{columnName} = {returnedValue}";
+                        isFirstLine = false;
+                    } 
+                    else dv.RowFilter += $" OR {columnName} = {returnedValue}";
+                }
+                else 
+                {
+                    if (isFirstLine) 
+                    {
+                        dv.RowFilter += $"{columnName} LIKE '%{returnedValue}%'";
+                        isFirstLine = false;
+                    } 
+                    else dv.RowFilter += $" OR {columnName} LIKE '%{returnedValue}%'";
+                }
+            }
+            WindGrid.DataSource = dv;
+        }
+
+        private (object, DataTypeEnum) ReturnDefinedType(string input) 
+        {
+            int intValue;
+            double doubleValue;
+            DateTime dateTime;
+
+            if (int.TryParse(input, out intValue))
+            {
+                return (intValue, DataTypeEnum.isInt);
+            }
+            else if (double.TryParse(input, out doubleValue))
+            {
+                return (doubleValue, DataTypeEnum.isDouble);
+            }
+            else if(DateTime.TryParse(input, out dateTime))
+            {
+                return (dateTime, DataTypeEnum.isDateTime);
+            }
+            else
+            {
+                return (input, DataTypeEnum.isString);
+            }
         }
     }
 }

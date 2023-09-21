@@ -31,7 +31,21 @@ namespace DatabasesAddon
 
         private void advancedDataGridView1_SortStringChanged(object sender, EventArgs e)
         {
-           
+            var advancedGrid = (AdvancedDataGridView)sender;
+            var sortString = advancedGrid.SortString;
+
+            // Define a regular expression pattern to match the desired substrings
+            string pattern = @"\[[^\]]+\] (ASC|DESC)";
+            Match match = Regex.Match(sortString, pattern);
+
+            if (match.Success)
+            {
+                Controller.SortGrid(sortString);
+            }
+            else
+            {
+                //  Console.WriteLine("No match found.");
+            }
         }
 
         private void advancedDataGridView1_FilterStringChanged(object sender, EventArgs e)

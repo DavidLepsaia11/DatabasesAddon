@@ -42,7 +42,7 @@ namespace DatabasesAddon
         public void FillReportGrid()
         {
             string filePath = @"C:\Users\dlepsaia\source\repos\DatabasesAddon\DatabasesAddon\AddonFile\QueryFile.txt";
-            string query = "Select top 10  \"TransId\" , \"SysTotal\" from \"OJDT\"";
+            string query = "";
             string connectionString = "Server=10.132.10.104:30015;UserName=SYSTEM;Password=GusSERta1;CS=CONS_MANAGEMENT";
 
             try
@@ -61,24 +61,6 @@ namespace DatabasesAddon
                         using (var reader = cmd.ExecuteReader())
                         {
                             var columns = GetColumnsList();
-
-
-                            //var columns = new List<string>();
-                            //for (int i = 0; i < reader.FieldCount; i++)
-                            //{
-                            //    string colname = reader.GetName(i);
-                            //    if (ResultTable.Columns.Contains(colname))
-                            //    {
-                            //        colname += "2";
-                            //        ResultTable.Columns.Add(colname);
-                            //    }
-                            //    else
-                            //    {
-                            //        ResultTable.Columns.Add(colname);
-                            //    }
-                            //    columns.Add(colname);
-                            //}
-
                             while (reader.Read())
                             {
                                 object[] array = new object[columns.Count];
@@ -111,7 +93,7 @@ namespace DatabasesAddon
             ResultTable.Columns.Add("Debit", typeof(double));
             ResultTable.Columns.Add("Credit", typeof(double));
             ResultTable.Columns.Add("CntRows", typeof(int));
-            ResultTable.Columns.Add("'SRGRE'", typeof(string));
+            ResultTable.Columns.Add("SRGRE", typeof(string));
             ResultTable.Columns.Add("TransId", typeof(int));
             ResultTable.Columns.Add("Debit2", typeof(string));
             ResultTable.Columns.Add("Credit2", typeof(string));
@@ -139,6 +121,7 @@ namespace DatabasesAddon
             DataTypeEnum dataType;
             dv.RowFilter = string.Empty;
             bool isFirstLine = true;
+            bool datehasHourAndMinute;
 
             foreach (var value in values)
             {
@@ -152,14 +135,17 @@ namespace DatabasesAddon
                     }
                    else dv.RowFilter += $" OR {columnName} = {returnedValue}";
                 }
-                else if (dataType == DataTypeEnum.isDateTime)
+                else if (dataType == DataTypeEnum.isDateTime) 
                 {
+                    var dateTime = (DateTime) returnedValue;
+                    datehasHourAndMinute = dateTime.Hour != 0 && dateTime.Minute != 0;
+
                     if (isFirstLine) 
                     {
-                        dv.RowFilter += $"{columnName} = {returnedValue}";
+                        dv.RowFilter += datehasHourAndMinute ? $"{columnName} = '{dateTime.Year}-{dateTime.Month}-{dateTime.Day} {dateTime.Hour}:{dateTime.Minute}:{dateTime.Second}'"  : $"{columnName} = '{dateTime.Year}-{dateTime.Month}-{dateTime.Day}'";
                         isFirstLine = false;
                     } 
-                    else dv.RowFilter += $" OR {columnName} = {returnedValue}";
+                    else dv.RowFilter += datehasHourAndMinute ? $" OR {columnName} = '{dateTime.Year}-{dateTime.Month}-{dateTime.Day} {dateTime.Hour}:{dateTime.Minute}:{dateTime.Second}'" : $" OR {columnName} = '{dateTime.Year}-{dateTime.Month}-{dateTime.Day}'";
                 }
                 else 
                 {
@@ -171,6 +157,15 @@ namespace DatabasesAddon
                     else dv.RowFilter += $" OR {columnName} LIKE '%{returnedValue}%'";
                 }
             }
+            
+        }
+
+        public void SortGrid(string sortString) 
+        {
+            DataView dv = ResultTable.DefaultView;
+            sortString = sortString.Replace("[", "").Replace("]", "");
+            dv.Sort = sortString;
+
             WindGrid.DataSource = dv;
         }
 
@@ -179,6 +174,8 @@ namespace DatabasesAddon
             int intValue;
             double doubleValue;
             DateTime dateTime;
+
+            input = input.Replace("'", "");
 
             if (int.TryParse(input, out intValue))
             {

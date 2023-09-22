@@ -1,7 +1,9 @@
 ﻿using ADGV;
+using DatabasesAddon.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -18,15 +20,17 @@ namespace DatabasesAddon
 
         public AdvancedDataGridView WindGrid { get { return AdvancedDataGridView1; } }
 
+        public ComboBox ComboBox { get { return comboBox1; } }
+
         public Form1()
         {
               InitializeComponent();
-              Controller = new ReportController(RSM.Core.SDK.DI.DIApplication.Company, this);
+              Controller = new ReportController(RSM.Core.SDK.DI.DIApplication.Company, this, new HanaDbService(ConfigurationManager.AppSettings["ConnectionString"]));
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            Controller.FillReportGrid();
+            Controller.FillGridWithCompareAmountsQuery();
         }
 
         private void advancedDataGridView1_SortStringChanged(object sender, EventArgs e)
@@ -70,5 +74,6 @@ namespace DatabasesAddon
         {
             this.Close();
         }
+
     }
 }

@@ -12,78 +12,49 @@ using System.Dynamic;
 using System.Windows.Forms;
 using ADGV;
 using DatabasesAddon.Enums;
+using System.Configuration;
+using DatabasesAddon.Services;
 
 namespace DatabasesAddon
 {
     public class ReportController
     {
-     //   private readonly IForm Form;
         private readonly SAPbobsCOM.Company Company;
+        public HanaDbService HanaDbService { get; private set; }
 
-      //  public SAPbouiCOM.Grid ReportGrid { get { return (SAPbouiCOM.Grid)Form.Items.Item("Item_2").Specific; } }
+        public DataTable ResultTable { get; set; }
+
+
+        //Form components 
         public AdvancedDataGridView WindGrid { get; set; }
+        public ComboBox ComboBox { get; private set; }
 
-        public  BindingSource BindingSource { get; private set; }
 
-        public DataTable ResultTable { get; private set; }
-        //public ReportController(SAPbobsCOM.Company company, SAPbouiCOM.IForm form)
-        //{
-        //    Company = company;
-        //    Form = form;
-        //}
 
-        public ReportController(SAPbobsCOM.Company company, Form1 ActiveForm)
+        public ReportController(SAPbobsCOM.Company company, Form1 activeForm, HanaDbService hanaDbService)
         {
             Company = company;
-            WindGrid = ActiveForm.WindGrid;
-            ResultTable = new System.Data.DataTable();
+            HanaDbService = hanaDbService;
+            ComboBox = activeForm.ComboBox;
+            WindGrid = activeForm.WindGrid;
         }
 
-        public void FillReportGrid()
+        public void FillGridWithCompareAmountsQuery()
         {
-            string filePath = @"C:\Users\dlepsaia\source\repos\DatabasesAddon\DatabasesAddon\AddonFile\CompareAmountsQuery.txt";
+            string filePath = ConfigurationManager.AppSettings["CompareAmountsQuery"];
             string query = "";
-            string connectionString = "Server=10.132.10.104:30015;UserName=SYSTEM;Password=GusSERta1;CS=CONS_MANAGEMENT";
+            string connectionString = ConfigurationManager.AppSettings["ConnectionString"];
 
             try
             {
-                using (var hanaConnection = new HanaConnection(connectionString))
-                {
-                    hanaConnection.Open();
-                    using (StreamReader reader = new StreamReader(filePath))
-                    {
-                        query = reader.ReadToEnd();
-                    }
-                    using (var cmd = new HanaCommand(query, hanaConnection))
-                    {
-                        var dict = new Dictionary<string, string>();
-
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            var columns = GetColumnsList();
-                            while (reader.Read())
-                            {
-                                object[] array = new object[columns.Count];
-
-                                for (int j = 0; j < columns.Count; j++)
-                                {
-                                    var columnValue = reader.GetValue(j);
-                                    array[j] = columnValue;
-                                }
-                                ResultTable.Rows.Add(array);
-                            }
-                        }
-                    }
-                }
+                ResultTable = HanaDbService.ExecuteQuery(GetColumnsList().Count);
                 WindGrid.DataSource = ResultTable;
             }
             catch (Exception ex)
             {
                 RSM.Core.SDK.UI.UIApplication.ShowError(ex.Message);
             }
-
         }
-
 
         public void FilterGrid(string columnName, params string[] values) 
         {
@@ -146,6 +117,17 @@ namespace DatabasesAddon
             dv.RowFilter = string.Empty;
         }
 
+        public void FillComboBox() 
+        {
+
+           // ComboBox.Items.Add();
+
+
+        }
+
+
+        #region Private Methods
+
         private (object, DataTypeEnum) ReturnDefinedType(string input) 
         {
             int intValue;
@@ -201,5 +183,8 @@ namespace DatabasesAddon
 
             return columnList;
         }
+
+        #endregion
+
     }
 }

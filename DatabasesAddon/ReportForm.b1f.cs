@@ -50,7 +50,7 @@ namespace DatabasesAddon
 
         private void Button0_ClickAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
-            ReportController.FillReportGrid();
+            ReportController.FillGridWithCompareAmountsQuery();
         }
 
         private void Button1_ClickAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)

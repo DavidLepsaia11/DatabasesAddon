@@ -1,1 +1,159 @@
-﻿
+﻿do 
+begin
+/*
+
+ქეშ ფლოუების შედარება ყველა ბრენჩ ბაზასთან 
+ირჩევა კონსოლიდაციის ბაზა მარტო
+
+1.0
+პირველი ვერსია
+
+1.1
+ლოგების გამოტანა
+
+1.2
+დამატებითი ველების გამოტანა ბრენჩული ბაზიდან
+
+*/
+
+-- აქ უნდა ჩაიწეროს კონსოლიდაციის ბაზის სახელი
+declare ConsBase nvarchar(100) = 'CONSBASESRGRE';
+
+-- აქ ტექნიკური ცვლადებია
+declare BranchBase nvarchar(100);
+
+declare BranchBaseCount INT;
+declare TempString nvarchar(1000) = '';
+
+declare SqlStatementBranchCount nvarchar(5000);
+declare SqlStatementBranchList nvarchar(5000);
+declare SqlStatementMain nvarchar(9200);
+declare SqlStatementUnionAll nvarchar(200000) = '' ;
+
+declare i INTEGER;
+
+
+
+-- დინამიური ქვერი ბრენჩების რაოდენობის დასათვლელად
+SqlStatementBranchCount = ' ' ||
+'select count(*) from (select distinct "OJDT"."U_SenderBranchCompany" from "' || ConsBase || '"."OJDT" ' ||
+'	where "OJDT"."RefDate" >= ''2023-01-01'' ' ||
+'	and "U_SenderBranchCompany" is not null)';
+
+
+-- ბრენჩული ბაზების სიის ქვერი	
+SqlStatementBranchList = ' ' ||
+'select "U_SenderBranchCompany" ' ||
+'	, ROW_NUMBER() OVER (ORDER BY "AbsLocTotal" DESC) AS "row_num" ' ||
+'from ' ||
+'( ' ||
+'select "OJDT"."U_SenderBranchCompany" ' ||
+'	, sum(abs("LocTotal")) "AbsLocTotal" ' ||
+'from "' || ConsBase || '"."OJDT" ' ||
+'where "OJDT"."RefDate" >= ''2023-01-01'' ' ||
+'	and "U_SenderBranchCompany" is not null ' ||
+'group by "OJDT"."U_SenderBranchCompany" ' ||
+') "ConsOverview" ';
+
+
+
+
+EXEC SqlStatementBranchCount INTO BranchBaseCount;
+
+--
+for i IN 1..BranchBaseCount do
+
+EXEC 'select "U_SenderBranchCompany" from (' || :SqlStatementBranchList || ') "Table2" where "row_num" = ''' || i || '''' INTO BranchBase;
+
+-- მთავარი ქვერი შედარების
+SqlStatementMain = ' ' ||
+'select * ' ||
+'from ' ||
+'	( ' ||
+'	select ' ||
+'		  ifnull("OJDT"."U_SenderBranchCompany", ''No Sender'') as "U_SenderBranchCompany" ' ||
+'		, ifnull("OJDT"."U_OriginalJdtNum", ''-7'') as "U_OriginalJdtNum" ' ||
+'		, "Line_ID" ' ||
+'		, min("OCFW"."CFWName") "MinMaxCFWName" ' ||
+'		, max("OCFW"."CFWName") "MaxMaxCFWName" ' ||
+'		, sum("JDT1"."Debit") "Debit", sum("JDT1"."Credit") "Credit" ' ||
+'		, count(7) "CountRows" ' ||
+'	from "' || ConsBase || '"."JDT1" ' ||
+'	left join  ' ||
+'		( ' ||
+'		select "JDTId" ' ||
+'			, "JDTLineId" ' ||
+'			, max("CFWId") "MaxCFWId" ' ||
+'		from "' || ConsBase || '"."OCFT" ' ||
+'		group by "JDTId", "JDTLineId" ' ||
+'		) "OCFTGrouped" on "JDT1"."TransId" = "OCFTGrouped"."JDTId" and "JDT1"."Line_ID" = "OCFTGrouped"."JDTLineId" ' ||
+'	left join "' || ConsBase || '"."OJDT" on "JDT1"."TransId" = "OJDT"."TransId" ' ||
+'	left join "' || ConsBase || '"."OCFW" on "OCFTGrouped"."MaxCFWId" = "OCFW"."CFWId" ' ||
+'	where "OJDT"."RefDate" >= ''2023-01-01'' ' ||
+'	group by ifnull("OJDT"."U_SenderBranchCompany", ''No Sender'') ' ||
+'		, ifnull("OJDT"."U_OriginalJdtNum", ''-7'') ' ||
+'		, "JDT1"."Line_ID" ' ||
+'	) "ConsBase" ' ||
+'full join ' ||
+'	( ' ||
+'	select  ' ||
+'		  ''' || BranchBase || ''' "BranchBase" ' ||
+'		, "OJDT"."TransId" ' ||
+'		, "JDT1"."Line_ID" ' ||
+'		, "OCFW"."CFWName" "MaxCFWName" ' ||
+'		, "JDT1"."Debit", "JDT1"."Credit" ' ||
+'		, to_date(TO_TIMESTAMP("OJDT"."RefDate")) "RefDate" ' ||
+'		, to_date(TO_TIMESTAMP("OJDT"."CreateDate")) "CreateDate" ' ||
+'		, "OJDT"."U_UpdateTS" "U_UpdateTS" ' ||
+'		, "@RSM_ICSYNCLOG"."U_ErrorMessage" "SyncMessage"' ||
+'		, to_date(TO_TIMESTAMP("@RSM_ICSYNCLOG"."U_CreateDate")) "SyncDate" ' ||
+'		, "@RSM_ICUPDATELOG"."U_ErrorMessage" "UpdateMessage"' ||
+'		, to_date(TO_TIMESTAMP("@RSM_ICUPDATELOG"."U_LogUpdateDateTime")) "LastUpdate" ' ||
+'	from "' || BranchBase || '"."JDT1" ' ||
+'	left join "CONS_MANAGEMENT"."@RSM_ICSYNCLOG" on "CONS_MANAGEMENT"."@RSM_ICSYNCLOG"."U_ChildJdtNum" = "JDT1"."TransId"' ||
+'			and "CONS_MANAGEMENT"."@RSM_ICSYNCLOG"."U_ChildCompany" = ''' || BranchBase || ''' ' ||
+'			and "CONS_MANAGEMENT"."@RSM_ICSYNCLOG"."U_ParentCompany" = ''' || ConsBase || ''' ' ||
+'	left join "CONS_MANAGEMENT"."@RSM_ICUPDATELOG" on "CONS_MANAGEMENT"."@RSM_ICUPDATELOG"."U_ChildJdtNum" = "JDT1"."TransId"' ||
+'			and "CONS_MANAGEMENT"."@RSM_ICUPDATELOG"."U_ChildCompany" = ''' || BranchBase || ''' ' ||
+'			and "CONS_MANAGEMENT"."@RSM_ICUPDATELOG"."U_ParentCompany" = ''' || ConsBase || ''' ' ||
+'	left join ' ||
+'		( ' ||
+'		select "JDTId" ' ||
+'			, "JDTLineId" ' ||
+'			, max("CFWId") "MaxCFWId" ' ||
+'		from "' || BranchBase || '"."OCFT" ' ||
+'		group by "JDTId", "JDTLineId" ' ||
+'		) "OCFTGrouped" on "JDT1"."TransId" = "OCFTGrouped"."JDTId" and "JDT1"."Line_ID" = "OCFTGrouped"."JDTLineId" ' ||
+'	left join "' || BranchBase || '"."OJDT" on "JDT1"."TransId" = "OJDT"."TransId" ' ||
+'	left join "' || BranchBase || '"."OCFW" on "OCFTGrouped"."MaxCFWId" = "OCFW"."CFWId" ' ||
+'	where "OJDT"."RefDate" >= ''2023-01-01'' ' ||
+'	) "BranchBase" on "ConsBase"."U_OriginalJdtNum" = "BranchBase"."TransId" and "ConsBase"."Line_ID" = "BranchBase"."Line_ID" ' ||
+'where ("ConsBase"."U_SenderBranchCompany" = ''' || BranchBase || ''' ' ||
+'			or "ConsBase"."U_SenderBranchCompany" is null) ' ||
+'	and ("ConsBase"."MinMaxCFWName" is not null or "ConsBase"."MaxMaxCFWName" is not null or "BranchBase"."MaxCFWName" is not null) ' ||
+'	and (ifnull("ConsBase"."MinMaxCFWName", ''No CFW'') <> ifnull("BranchBase"."MaxCFWName", ''No CFW'') ' ||
+'			 or ifnull("ConsBase"."MaxMaxCFWName", ''No CFW'') <> ifnull("BranchBase"."MaxCFWName", ''No CFW'')) ';
+
+
+SqlStatementUnionAll = SqlStatementUnionAll || SqlStatementMain;
+
+if i <> BranchBaseCount then
+SqlStatementUnionAll = :SqlStatementUnionAll || ' Union All ';
+end if;
+
+end for;
+
+--order by "U_SenderBranchCompany", "U_OriginalJdtNum", "ConsBase"."Line_ID"
+
+--select 	:BranchBase from DUMMY; -- ტესტირებისთვის
+--select 	:SqlStatementUnionAll from DUMMY; -- ტესტირებისთვის
+--select 	:SqlStatementBranchList from DUMMY; -- ტესტირებისთვის
+	
+--select :SqlStatementBranchCount from dummy;	
+--select :BranchBaseCount from DUMMY; -- ტესტირებისთვის
+
+
+--select 	:SqlStatementMain from DUMMY; -- ტესტირებისთვის
+execute immediate :SqlStatementUnionAll;		
+		
+end;

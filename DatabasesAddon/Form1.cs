@@ -34,17 +34,12 @@ namespace DatabasesAddon
             var advancedGrid = (AdvancedDataGridView)sender;
             var sortString = advancedGrid.SortString;
 
-            // Define a regular expression pattern to match the desired substrings
             string pattern = @"\[[^\]]+\] (ASC|DESC)";
             Match match = Regex.Match(sortString, pattern);
 
             if (match.Success)
             {
                 Controller.SortGrid(sortString);
-            }
-            else
-            {
-                //  Console.WriteLine("No match found.");
             }
         }
 
@@ -53,7 +48,6 @@ namespace DatabasesAddon
             var advancedGrid = (AdvancedDataGridView)sender;
             var filterString = advancedGrid.FilterString;
 
-            // Define a regular expression pattern to match the desired substrings
             string pattern = @"\(\[([^\]]+)\] IN \(([^)]+)\)\)";
             Match match = Regex.Match(filterString, pattern);
 
@@ -61,13 +55,20 @@ namespace DatabasesAddon
             {
                 string columnName = match.Groups[1].Value;
                 string value = match.Groups[2].Value;
-               Controller.FilterGrid(columnName, value.Split(','));
-            }
-            else
-            {
-              //  Console.WriteLine("No match found.");
-            }
+                var splittedFilters = value.Split(',');
 
+               Controller.FilterGrid(columnName, splittedFilters);
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Controller.ShowAllRows();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 }

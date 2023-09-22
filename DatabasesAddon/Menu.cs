@@ -78,7 +78,7 @@ namespace DatabasesAddon
                     activeForm.Show();
                     activeForm.Activate();
                     activeForm.Focus();
-                    System.Windows.Forms.Application.Run();
+                    System.Windows.Forms.Application.Run(activeForm);
                 }
             }
             catch (Exception ex)

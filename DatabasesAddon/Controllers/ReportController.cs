@@ -41,7 +41,7 @@ namespace DatabasesAddon
 
         public void FillReportGrid()
         {
-            string filePath = @"C:\Users\dlepsaia\source\repos\DatabasesAddon\DatabasesAddon\AddonFile\QueryFile.txt";
+            string filePath = @"C:\Users\dlepsaia\source\repos\DatabasesAddon\DatabasesAddon\AddonFile\CompareAmountsQuery.txt";
             string query = "";
             string connectionString = "Server=10.132.10.104:30015;UserName=SYSTEM;Password=GusSERta1;CS=CONS_MANAGEMENT";
 
@@ -84,35 +84,6 @@ namespace DatabasesAddon
 
         }
 
-        private List<string> GetColumnsList()
-        {
-            var columnList = new List<string>();
-
-            ResultTable.Columns.Add("U_SenderBranchCompany", typeof(string));
-            ResultTable.Columns.Add("U_OriginlJdNum", typeof(int));
-            ResultTable.Columns.Add("Debit", typeof(double));
-            ResultTable.Columns.Add("Credit", typeof(double));
-            ResultTable.Columns.Add("CntRows", typeof(int));
-            ResultTable.Columns.Add("SRGRE", typeof(string));
-            ResultTable.Columns.Add("TransId", typeof(int));
-            ResultTable.Columns.Add("Debit2", typeof(string));
-            ResultTable.Columns.Add("Credit2", typeof(string));
-            ResultTable.Columns.Add("RefDate", typeof(DateTime));
-            ResultTable.Columns.Add("CreateDate", typeof(DateTime));
-            ResultTable.Columns.Add("U_UpdateTS", typeof(DateTime));
-            ResultTable.Columns.Add("SyncMessage", typeof(string));
-            ResultTable.Columns.Add("SyncDate", typeof(DateTime));
-            ResultTable.Columns.Add("UpdateMessage", typeof(string));
-            ResultTable.Columns.Add("LastUpdate", typeof(DateTime));
-
-
-            for (int i = 0; i < ResultTable.Columns.Count; i++)
-            {
-                columnList.Add(ResultTable.Columns[i].ColumnName);
-            }
-
-            return columnList;
-        }
 
         public void FilterGrid(string columnName, params string[] values) 
         {
@@ -169,13 +140,19 @@ namespace DatabasesAddon
             WindGrid.DataSource = dv;
         }
 
+        public void ShowAllRows() 
+        {
+            DataView dv = ResultTable.DefaultView;
+            dv.RowFilter = string.Empty;
+        }
+
         private (object, DataTypeEnum) ReturnDefinedType(string input) 
         {
             int intValue;
             double doubleValue;
             DateTime dateTime;
 
-            input = input.Replace("'", "");
+            input = input.Replace("'", "").Trim();
 
             if (int.TryParse(input, out intValue))
             {
@@ -193,6 +170,36 @@ namespace DatabasesAddon
             {
                 return (input, DataTypeEnum.isString);
             }
+        }
+
+        private List<string> GetColumnsList()
+        {
+            var columnList = new List<string>();
+
+            ResultTable.Columns.Add("U_SenderBranchCompany", typeof(string));
+            ResultTable.Columns.Add("U_OriginlJdNum", typeof(int));
+            ResultTable.Columns.Add("Debit", typeof(double));
+            ResultTable.Columns.Add("Credit", typeof(double));
+            ResultTable.Columns.Add("CntRows", typeof(int));
+            ResultTable.Columns.Add("SRGRE", typeof(string));
+            ResultTable.Columns.Add("TransId", typeof(int));
+            ResultTable.Columns.Add("Debit2", typeof(string));
+            ResultTable.Columns.Add("Credit2", typeof(string));
+            ResultTable.Columns.Add("RefDate", typeof(DateTime));
+            ResultTable.Columns.Add("CreateDate", typeof(DateTime));
+            ResultTable.Columns.Add("U_UpdateTS", typeof(DateTime));
+            ResultTable.Columns.Add("SyncMessage", typeof(string));
+            ResultTable.Columns.Add("SyncDate", typeof(DateTime));
+            ResultTable.Columns.Add("UpdateMessage", typeof(string));
+            ResultTable.Columns.Add("LastUpdate", typeof(DateTime));
+
+
+            for (int i = 0; i < ResultTable.Columns.Count; i++)
+            {
+                columnList.Add(ResultTable.Columns[i].ColumnName);
+            }
+
+            return columnList;
         }
     }
 }

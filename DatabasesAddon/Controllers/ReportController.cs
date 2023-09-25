@@ -30,38 +30,48 @@ namespace DatabasesAddon
         public ComboBox ComboBox { get; private set; }
 
 
+        public ReportController(HanaDbService hanaDbService, Form1 activeForm)
+        {
+            HanaDbService = hanaDbService;
+            ComboBox = activeForm.ComboBox;
+        }
 
         public ReportController(SAPbobsCOM.Company company, Form1 activeForm, HanaDbService hanaDbService)
         {
             Company = company;
             HanaDbService = hanaDbService;
-            ComboBox = activeForm.ComboBox;
             AdvancedGrid = activeForm.WindGrid;
         }
 
-        public void FillGridWithCompareAmountsQuery()
+        public DataTable FillGridWithCompareAmountsQuery()
         {
             try
             {
-               var resultTable = HanaDbService.ExecuteQuery(GetAmountQueryColumnsList());
-                AdvancedGrid.DataSource = resultTable;
+               var filledTable = HanaDbService.ExecuteQuery(GetAmountQueryColumnsTable());
+                AdvancedGrid.DataSource = filledTable;
+
+                return filledTable;
             }
             catch (Exception ex)
             {
                 RSM.Core.SDK.UI.UIApplication.ShowError(ex.Message);
+
+                return default;
             }
         }
 
-        public void FillGridwithCompareCashFlowsQuery()
+        public DataTable FillGridwithCompareCashFlowsQuery()
         {
             try
             {
-                var resultTable = HanaDbService.ExecuteQuery(GetCashFlowQueryColumnList());
-                AdvancedGrid.DataSource = resultTable;
+                var filledTable = HanaDbService.ExecuteQuery(GetCashFlowQueryColumnsTable());
+                AdvancedGrid.DataSource = filledTable;
+                return filledTable;
             }
             catch (Exception ex)
             {
                 RSM.Core.SDK.UI.UIApplication.ShowError(ex.Message);
+                return default;
             }
         }
 
@@ -120,27 +130,32 @@ namespace DatabasesAddon
             AdvancedGrid.DataSource = dv;
         }
 
-        public void ShowAllRows()
+        public void ShowAllRows(DataTable resultTable)
         {
-            //DataView dv = ResultTable.DefaultView;
-            //dv.RowFilter = string.Empty;
+            DataView dv = resultTable.DefaultView;
+            dv.RowFilter = string.Empty;
         }
 
         public void FillComboBox()
         {
-            string query = "Select DatabaseName from ODBC";
+            string query = $"select \"U_DBName\" from \"@RSM_IC_DBLIST1\" where \"U_DBType\" = 2";
+
             var resultTable = new DataTable();
+            resultTable.Columns.Add("U_DBName", typeof(string));
+
             var dbNames = HanaDbService.ExecuteQuery(resultTable, query);
 
-            foreach (var row in dbNames.Rows)
+            var list = new List<object>();
+
+            for (int i = 0; i < dbNames.Rows.Count; i++)
             {
-                ComboBox.Items.Add(row);
+               ComboBox.Items.Add(dbNames.Rows[i]["U_DBName"]);
             }
         }
 
         #region Creating Table Functions
 
-        public static DataTable GetAmountQueryColumnsList()
+        private  DataTable GetAmountQueryColumnsTable()
         {
             var resultTable = new DataTable(); 
 
@@ -164,9 +179,31 @@ namespace DatabasesAddon
             return resultTable;
         }
 
-        public static DataTable GetCashFlowQueryColumnList()
+        private  DataTable GetCashFlowQueryColumnsTable()
         {
             var resultTable = new DataTable();
+            resultTable.Columns.Add("U_SenderBranchCompany", typeof(string));
+            resultTable.Columns.Add("U_OriginlJdNum", typeof(int));
+            resultTable.Columns.Add("Line_ID", typeof(int));
+            resultTable.Columns.Add("MinMaxCFWName", typeof(string));
+            resultTable.Columns.Add("MaxMaxCFWName", typeof(string));
+            resultTable.Columns.Add("Debit", typeof(double));
+            resultTable.Columns.Add("Credit", typeof(double));
+            resultTable.Columns.Add("CountRows", typeof(int));
+            resultTable.Columns.Add("BranchBase", typeof(string));
+            resultTable.Columns.Add("TransId", typeof(int));
+            resultTable.Columns.Add("Line_ID2", typeof(int));
+            resultTable.Columns.Add("MaxCFWName", typeof(string));
+            resultTable.Columns.Add("Debit2", typeof(double));
+            resultTable.Columns.Add("Credit2", typeof(double));
+            resultTable.Columns.Add("RefDate", typeof(DateTime));
+            resultTable.Columns.Add("CreateDate", typeof(DateTime));
+            resultTable.Columns.Add("U_UpdateTS", typeof(DateTime));
+            resultTable.Columns.Add("SyncMessage", typeof(string));
+            resultTable.Columns.Add("SyncDate", typeof(DateTime));
+            resultTable.Columns.Add("UpdateMessage", typeof(string));
+            resultTable.Columns.Add("LastUpdate", typeof(DateTime));
+
             return resultTable;
         }
         #endregion

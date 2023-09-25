@@ -1,15 +1,8 @@
 ﻿using ADGV;
 using DatabasesAddon.Services;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Configuration;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DatabasesAddon
@@ -24,13 +17,13 @@ namespace DatabasesAddon
 
         public Form1()
         {
-              InitializeComponent();
-          //    Controller = new ReportController(RSM.Core.SDK.DI.DIApplication.Company, this, new HanaDbService(ConfigurationManager.AppSettings["ConnectionString"]));
+            InitializeComponent();
+            Controller = new ReportController(new HanaDbService(ConfigurationManager.AppSettings["ConnectionString"]), this);
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-           // Controller.FillGridWithCompareAmountsQuery();
+            Controller.FillComboBox();
         }
 
         private void advancedDataGridView1_SortStringChanged(object sender, EventArgs e)
@@ -43,8 +36,9 @@ namespace DatabasesAddon
 
             if (match.Success)
             {
-                var resultTable = radioButton1.Checked ? ReportController.GetAmountQueryColumnsList() : ReportController.GetCashFlowQueryColumnList();
-                Controller.SortGrid(resultTable,sortString);
+                var resultTable = radioButton1.Checked ? Controller.FillGridWithCompareAmountsQuery() : Controller.FillGridwithCompareCashFlowsQuery();
+
+                Controller.SortGrid(resultTable, sortString);
             }
         }
 
@@ -62,14 +56,17 @@ namespace DatabasesAddon
                 string value = match.Groups[2].Value;
                 var splittedFilters = value.Split(',');
 
-                var resultTable = radioButton1.Checked ? ReportController.GetAmountQueryColumnsList() : ReportController.GetCashFlowQueryColumnList();
+                var resultTable = radioButton1.Checked ? Controller.FillGridWithCompareAmountsQuery() : Controller.FillGridwithCompareCashFlowsQuery();
+
                 Controller.FilterGrid(resultTable, columnName, splittedFilters);
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Controller.ShowAllRows();
+            var resultTable = radioButton1.Checked ? Controller.FillGridWithCompareAmountsQuery() : Controller.FillGridwithCompareCashFlowsQuery();
+
+            Controller.ShowAllRows(resultTable);
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -82,7 +79,7 @@ namespace DatabasesAddon
             var connectionString = ConfigurationManager.AppSettings["ConnectionString"];
             var query = ConfigurationManager.AppSettings["CompareAmountsQuery"];
 
-            Controller = new ReportController(RSM.Core.SDK.DI.DIApplication.Company, this, new HanaDbService(connectionString , query));
+            Controller = new ReportController(RSM.Core.SDK.DI.DIApplication.Company, this, new HanaDbService(connectionString, query));
             Controller.FillGridWithCompareAmountsQuery();
         }
 

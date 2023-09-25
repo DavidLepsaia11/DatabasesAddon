@@ -92,6 +92,7 @@ namespace DatabasesAddon
             this.radioButton1.TabStop = true;
             this.radioButton1.Text = "Compare With Amounts";
             this.radioButton1.UseVisualStyleBackColor = true;
+            this.radioButton1.Click += new System.EventHandler(this.radioButton1_Click);
             // 
             // radioButton2
             // 
@@ -105,6 +106,7 @@ namespace DatabasesAddon
             this.radioButton2.TabStop = true;
             this.radioButton2.Text = "Compare With CashFlows";
             this.radioButton2.UseVisualStyleBackColor = true;
+            this.radioButton2.Click += new System.EventHandler(this.radioButton2_Click);
             // 
             // comboBox1
             // 

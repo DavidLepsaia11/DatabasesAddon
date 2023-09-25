@@ -16,14 +16,12 @@ namespace DatabasesAddon.Services
 
         public HanaDbService(string connection, string queryFilepath = null)
         {
-            connection = _connection;
+            _connection = connection;
             _queryFilepath = queryFilepath;
         }
 
-        public DataTable ExecuteQuery(int columnsCount, string query = null) 
+        public DataTable ExecuteQuery(DataTable table, string query = null) 
         {
-            var resultTable = new DataTable();
-
             using (var hanaConnection = new HanaConnection(_connection))
             {
                 hanaConnection.Open();
@@ -42,19 +40,19 @@ namespace DatabasesAddon.Services
                     {
                         while (reader.Read())
                         {
-                            object[] array = new object[columnsCount];
+                            object[] array = new object[table.Columns.Count];
 
-                            for (int j = 0; j < columnsCount; j++)
+                            for (int j = 0; j < table.Columns.Count; j++)
                             {
                                 var columnValue = reader.GetValue(j);
                                 array[j] = columnValue;
                             }
-                            resultTable.Rows.Add(array);
+                            table.Rows.Add(array);
                         }
                     }
                 }
             }
-            return resultTable;
+            return table;
         }
     }
 }

@@ -2,6 +2,8 @@
 using DatabasesAddon.Services;
 using System;
 using System.Configuration;
+using System.Data;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -14,6 +16,8 @@ namespace DatabasesAddon
         public AdvancedDataGridView WindGrid { get { return AdvancedDataGridView1; } }
 
         public ComboBox ComboBox { get { return comboBox1; } }
+
+        private string _updatedQuery;
 
         public Form1()
         {
@@ -64,9 +68,12 @@ namespace DatabasesAddon
 
         private void button1_Click(object sender, EventArgs e)
         {
-            var resultTable = radioButton1.Checked ? Controller.FillGridWithCompareAmountsQuery() : Controller.FillGridwithCompareCashFlowsQuery();
+            DataTable resultTable = radioButton1.Checked ? Controller.FillGridWithCompareAmountsQuery() : Controller.FillGridwithCompareCashFlowsQuery();
 
-            Controller.ShowAllRows(resultTable);
+            if (resultTable != null)
+            {
+              Controller.ShowAllRows(resultTable);
+            }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -80,13 +87,50 @@ namespace DatabasesAddon
             var query = ConfigurationManager.AppSettings["CompareAmountsQuery"];
 
             Controller = new ReportController(RSM.Core.SDK.DI.DIApplication.Company, this, new HanaDbService(connectionString, query));
-            Controller.FillGridWithCompareAmountsQuery();
+
+            if (_updatedQuery != null) Controller.FillGridWithCompareAmountsQuery(_updatedQuery);
+            else Controller.FillGridWithCompareAmountsQuery();
         }
 
         private void radioButton2_Click(object sender, EventArgs e)
         {
             Controller = new ReportController(RSM.Core.SDK.DI.DIApplication.Company, this, new HanaDbService(ConfigurationManager.AppSettings["ConnectionString"], ConfigurationManager.AppSettings["CompareCashFlowsQuery"]));
-            Controller.FillGridwithCompareCashFlowsQuery();
+
+            if (_updatedQuery != null) Controller.FillGridwithCompareCashFlowsQuery(_updatedQuery);
+            else Controller.FillGridwithCompareCashFlowsQuery();
         }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedValue = comboBox1.GetItemText(comboBox1.SelectedItem); 
+            string changedQuery = radioButton1.Checked ?  ChangeQuery(selectedValue, ConfigurationManager.AppSettings["CompareAmountsQuery"]) :
+               ChangeQuery(selectedValue, ConfigurationManager.AppSettings["CompareCashFlowsQuery"]);
+
+            if (radioButton1.Checked)
+            {
+                Controller.FillGridWithCompareAmountsQuery(changedQuery);
+            }
+            else if (radioButton2.Checked) 
+            {
+                Controller.FillGridwithCompareCashFlowsQuery(changedQuery);
+            }
+            
+        }
+
+        #region Helper Methods
+
+        private string ChangeQuery(string newString, string queryFilepath, string searchString = "CONSBASESRGRE")
+        {
+            using (StreamReader reader = new StreamReader(queryFilepath))
+            {
+                _updatedQuery = reader.ReadToEnd();
+            }
+
+            _updatedQuery = _updatedQuery.Replace(searchString, newString);
+         
+            return _updatedQuery;
+        }
+
+        #endregion
     }
 }

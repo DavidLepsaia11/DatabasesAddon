@@ -1,5 +1,4 @@
 ﻿using System;
-using DatabasesAddon.Helpers;
 using Sap.Data.Hana;
 using System.Data;
 //using SAPbouiCOM;
@@ -43,11 +42,11 @@ namespace DatabasesAddon
             AdvancedGrid = activeForm.WindGrid;
         }
 
-        public DataTable FillGridWithCompareAmountsQuery()
+        public DataTable FillGridWithCompareAmountsQuery(string updatedQuery = "")
         {
             try
             {
-               var filledTable = HanaDbService.ExecuteQuery(GetAmountQueryColumnsTable());
+               var filledTable = HanaDbService.ExecuteQuery(GetAmountQueryColumnsTable(), updatedQuery);
                 AdvancedGrid.DataSource = filledTable;
 
                 return filledTable;
@@ -60,11 +59,11 @@ namespace DatabasesAddon
             }
         }
 
-        public DataTable FillGridwithCompareCashFlowsQuery()
+        public DataTable FillGridwithCompareCashFlowsQuery(string updatedQuery = "")
         {
             try
             {
-                var filledTable = HanaDbService.ExecuteQuery(GetCashFlowQueryColumnsTable());
+                var filledTable = HanaDbService.ExecuteQuery(GetCashFlowQueryColumnsTable(), updatedQuery);
                 AdvancedGrid.DataSource = filledTable;
                 return filledTable;
             }
@@ -164,7 +163,7 @@ namespace DatabasesAddon
             resultTable.Columns.Add("Debit", typeof(double));
             resultTable.Columns.Add("Credit", typeof(double));
             resultTable.Columns.Add("CntRows", typeof(int));
-            resultTable.Columns.Add("SRGRE", typeof(string));
+            resultTable.Columns.Add("DBName", typeof(string));
             resultTable.Columns.Add("TransId", typeof(int));
             resultTable.Columns.Add("Debit2", typeof(string));
             resultTable.Columns.Add("Credit2", typeof(string));
@@ -209,7 +208,7 @@ namespace DatabasesAddon
         #endregion
 
 
-        #region Private Methods
+        #region Helper Methods
 
         private (object, DataTypeEnum) ReturnDefinedType(string input)
         {
@@ -236,6 +235,8 @@ namespace DatabasesAddon
                 return (input, DataTypeEnum.isString);
             }
         }
+
+ 
         #endregion
 
     }

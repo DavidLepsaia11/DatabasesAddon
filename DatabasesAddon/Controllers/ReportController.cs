@@ -90,7 +90,7 @@ namespace DatabasesAddon
                 {
                     if (isFirstLine)
                     {
-                        dv.RowFilter += $"{columnName} = {returnedValue}";
+                        dv.RowFilter += $"{columnName} = '{returnedValue}'";
                         isFirstLine = false;
                     }
                     else dv.RowFilter += $" OR {columnName} = {returnedValue}";
@@ -160,8 +160,8 @@ namespace DatabasesAddon
 
             resultTable.Columns.Add("U_SenderBranchCompany", typeof(string));
             resultTable.Columns.Add("U_OriginlJdNum", typeof(int));
-            resultTable.Columns.Add("Debit", typeof(double));
-            resultTable.Columns.Add("Credit", typeof(double));
+            resultTable.Columns.Add("Debit", typeof(string));
+            resultTable.Columns.Add("Credit", typeof(string));
             resultTable.Columns.Add("CntRows", typeof(int));
             resultTable.Columns.Add("DBName", typeof(string));
             resultTable.Columns.Add("TransId", typeof(int));
@@ -186,15 +186,15 @@ namespace DatabasesAddon
             resultTable.Columns.Add("Line_ID", typeof(int));
             resultTable.Columns.Add("MinMaxCFWName", typeof(string));
             resultTable.Columns.Add("MaxMaxCFWName", typeof(string));
-            resultTable.Columns.Add("Debit", typeof(double));
-            resultTable.Columns.Add("Credit", typeof(double));
+            resultTable.Columns.Add("Debit", typeof(string));
+            resultTable.Columns.Add("Credit", typeof(string));
             resultTable.Columns.Add("CountRows", typeof(int));
             resultTable.Columns.Add("BranchBase", typeof(string));
             resultTable.Columns.Add("TransId", typeof(int));
             resultTable.Columns.Add("Line_ID2", typeof(int));
             resultTable.Columns.Add("MaxCFWName", typeof(string));
-            resultTable.Columns.Add("Debit2", typeof(double));
-            resultTable.Columns.Add("Credit2", typeof(double));
+            resultTable.Columns.Add("Debit2", typeof(string));
+            resultTable.Columns.Add("Credit2", typeof(string));
             resultTable.Columns.Add("RefDate", typeof(DateTime));
             resultTable.Columns.Add("CreateDate", typeof(DateTime));
             resultTable.Columns.Add("U_UpdateTS", typeof(DateTime));

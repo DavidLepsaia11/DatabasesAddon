@@ -72,7 +72,7 @@ namespace DatabasesAddon
 
             if (resultTable != null)
             {
-              Controller.ShowAllRows(resultTable);
+                Controller.ShowAllRows(resultTable);
             }
         }
 
